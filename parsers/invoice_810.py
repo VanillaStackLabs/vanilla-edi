@@ -1,5 +1,5 @@
-from parsers.base import BaseParser, safe_int, safe_float
-
+from parsers.base import BaseParser
+from utils.formatters import safe_int, safe_float
 
 class Parser810(BaseParser):
     transaction_code = "810"

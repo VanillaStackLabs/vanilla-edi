@@ -1,14 +1,5 @@
 from datetime import datetime
-
-def pad_right(val: str, length: int) -> str:
-    """Pads string with trailing spaces to exact length (ISA requirement)."""
-    return (val or "")[:length].ljust(length)
-
-
-def pad_left_zero(val: str, length: int) -> str:
-    """Pads control numbers with leading zeros to exact length."""
-    return (val or "1")[:length].zfill(length)
-
+from utils.formatters import pad_right, pad_left_zero
 
 class BaseGenerator:
     """Handles ISA/GS envelope formatting and segment counting."""

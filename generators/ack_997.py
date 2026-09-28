@@ -1,7 +1,6 @@
 from datetime import datetime
 from generators.base import BaseGenerator
 
-
 class Generator997(BaseGenerator):
 
     def generate(self, payload: dict) -> str:

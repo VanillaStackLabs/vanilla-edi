@@ -1,39 +1,6 @@
 import pytest
 from datetime import datetime
-from generators.base import pad_right, pad_left_zero, BaseGenerator
-
-
-# --- Padding Utility Tests ---
-def test_pad_right_standard():
-    # Pads string with trailing spaces to exact length
-    assert pad_right("SENDER", 10) == "SENDER    "
-
-
-def test_pad_right_truncation():
-    # Truncates if the provided string exceeds the target length
-    assert pad_right("SENDER123456", 10) == "SENDER1234"
-
-
-def test_pad_right_empty():
-    assert pad_right(None, 5) == "     "
-    assert pad_right("", 5) == "     "
-
-
-def test_pad_left_zero_standard():
-    # Pads control numbers with leading zeros
-    assert pad_left_zero("123", 9) == "000000123"
-
-
-def test_pad_left_zero_truncation():
-    # Truncates if the provided string exceeds the target length
-    assert pad_left_zero("1234567890", 9) == "123456789"
-
-
-def test_pad_left_zero_empty_default():
-    # Defaults to "1" if None or empty string is provided
-    assert pad_left_zero(None, 4) == "0001"
-    assert pad_left_zero("", 4) == "0001"
-
+from generators.base import BaseGenerator
 
 # --- BaseGenerator Tests ---
 @pytest.fixture

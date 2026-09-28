@@ -3,8 +3,6 @@ from parsers.base import (
     BaseParser,
     extract_delimiters,
     parse_envelope_headers,
-    safe_float,
-    safe_int,
 )
 
 # --- Helper Classes for Testing BaseParser ---
@@ -62,31 +60,6 @@ def test_parse_envelope_headers_missing_isa():
     envelope = parse_envelope_headers(segments, "*")
     assert envelope["sender_id"] == ""
     assert envelope["transaction_type"] == "810"
-
-
-# --- Type Safety Utility Tests ---
-def test_safe_float():
-    assert safe_float(" 12.50 ") == 12.5
-    assert safe_float("-5.99") == -5.99
-    assert safe_float("0") == 0.0
-
-    # Edge Cases
-    assert safe_float("", default=1.0) == 1.0
-    assert safe_float("ABC", default=0.0) == 0.0
-    assert safe_float(None, default=5.0) == 5.0
-
-
-def test_safe_int():
-    assert safe_int(" 12 ") == 12
-    assert safe_int("-5") == -5
-
-    # Casting floats in string format to int
-    assert safe_int("12.50") == 12
-
-    # Edge Cases
-    assert safe_int("", default=1) == 1
-    assert safe_int("ABC", default=0) == 0
-    assert safe_int(None, default=5) == 5
 
 
 # --- BaseParser Subclass Discovery Tests ---

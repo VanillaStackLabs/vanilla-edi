@@ -1,6 +1,5 @@
 from typing import List, Tuple, Optional
 
-
 class BaseParser:
     """Base class for all X12 document parsers."""
     transaction_code: str = ""  # Overridden by subclasses (e.g. "850", "810")
@@ -67,20 +66,3 @@ def parse_envelope_headers(segments: list, element_sep: str) -> dict:
             envelope["transaction_type"] = elements[1].strip()
 
     return envelope
-
-
-def safe_float(value: str, default: float = 0.0) -> float:
-    if value is None:
-        return default
-    try:
-        return float(value.strip())
-    except (ValueError, TypeError, AttributeError):
-        return default
-
-def safe_int(value: str, default: int = 0) -> int:
-    if value is None:
-        return default
-    try:
-        return int(float(value.strip()))
-    except (ValueError, TypeError, AttributeError):
-        return default

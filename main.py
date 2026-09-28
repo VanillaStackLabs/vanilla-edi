@@ -1,7 +1,8 @@
-from fastapi import FastAPI, UploadFile, File, HTTPException, Response
+from fastapi import FastAPI, UploadFile, File, HTTPException, Response, BackgroundTasks, Form
 from schemas import EDIDocumentSchema, Outbound997Request
 from generators.ack_997 import Generator997
 from edi_parser import parse_x12_to_dict
+from services.webhooks import dispatch_webhook
 
 app = FastAPI(
     title="VanillaEDI",
@@ -13,12 +14,22 @@ app = FastAPI(
 def health_check():
     return {"status": "active", "message": "VanillaEDI server is running."}
 
+
 @app.post("/api/v1/parse", response_model=EDIDocumentSchema, summary="Parse X12 EDI File to JSON")
-async def parse_edi(file: UploadFile = File(...)):
+async def parse_edi(
+        background_tasks: BackgroundTasks,
+        file: UploadFile = File(...),
+        webhook_url: str = Form(None, description="Optional URL to forward the parsed JSON to")
+):
     try:
         content = await file.read()
         raw_edi_string = content.decode("utf-8")
         parsed_data = parse_x12_to_dict(raw_edi_string)
+
+        # If a webhook URL is provided, queue the dispatch task to run after the response is sent
+        if webhook_url:
+            background_tasks.add_task(dispatch_webhook, webhook_url, parsed_data)
+
         return parsed_data
     except Exception as e:
         raise HTTPException(status_code=400, detail=f"Failed to parse EDI payload: {str(e)}")

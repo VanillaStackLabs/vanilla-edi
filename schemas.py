@@ -9,7 +9,7 @@ class LineItem(BaseModel):
     description: Optional[str] = Field("", description="Product description")
 
 class EDIDocumentSchema(BaseModel):
-    model_config = ConfigDict(extra="allow")  # Modern Pydantic V2 syntax
+    model_config = ConfigDict(extra="allow")
     transaction_type: str = Field(..., description="e.g., 850, 810, 856")
     sender_id: Optional[str] = Field("", description="ISA06 - Sender ID")
     receiver_id: Optional[str] = Field("", description="ISA08 - Receiver ID")

@@ -1,4 +1,5 @@
-from parsers.base import BaseParser, safe_int
+from parsers.base import BaseParser
+from utils.formatters import safe_int, safe_float
 
 ACK_STATUS_MAP = {
     "A": "Accepted",

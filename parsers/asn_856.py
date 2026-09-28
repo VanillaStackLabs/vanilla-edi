@@ -1,4 +1,5 @@
-from parsers.base import BaseParser, safe_int
+from parsers.base import BaseParser
+from utils.formatters import safe_int, safe_float
 
 
 class Parser856(BaseParser):
