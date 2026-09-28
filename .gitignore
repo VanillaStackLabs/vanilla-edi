@@ -1,0 +1,29 @@
+# Python Bytecode & Cache
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Virtual Environments
+.venv/
+venv/
+ENV/
+env/
+
+# IDE & Editor Settings (PyCharm / VS Code)
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Testing & Coverage
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Environment Variables & Secrets
+.env
+*.env
+
+# Operating System Files
+.DS_Store
+Thumbs.db
