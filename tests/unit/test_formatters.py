@@ -1,4 +1,4 @@
-from utils.formatters import safe_float, safe_int, pad_left_zero, pad_right
+from utils.formatters import safe_float, safe_int, pad_left_zero, pad_right, format_currency
 
 
 def test_safe_float():
@@ -24,6 +24,7 @@ def test_safe_int():
     assert safe_int("ABC", default=0) == 0
     assert safe_int(None, default=5) == 5
 
+
 # --- Padding Utility Tests ---
 def test_pad_right_standard():
     # Pads string with trailing spaces to exact length
@@ -42,6 +43,7 @@ def test_pad_right_empty():
 
 def test_pad_left_zero_standard():
     # Pads control numbers with leading zeros
+    assert pad_left_zero("1", 4) == "0001"
     assert pad_left_zero("123", 9) == "000000123"
 
 
@@ -55,3 +57,20 @@ def test_pad_left_zero_empty_default():
     assert pad_left_zero(None, 4) == "0001"
     assert pad_left_zero("", 4) == "0001"
 
+
+# --- Currency Formatter Tests ---
+def test_format_currency_standard_floats():
+    assert format_currency(10.50) == "10.5"
+    assert format_currency(12.00) == "12"
+    assert format_currency(5.5) == "5.5"
+    assert format_currency(2050.25) == "2050.25"
+
+
+def test_format_currency_zero_and_none():
+    assert format_currency(0.0) == "0"
+    assert format_currency(None) == "0"
+
+
+def test_format_currency_integers():
+    assert format_currency(100) == "100"
+    assert format_currency(0) == "0"

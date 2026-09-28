@@ -6,6 +6,17 @@ from schemas.invoice_810 import (
     Generate810Request,
     Generate810Response,
 )
+from schemas.asn_856 import (
+    ShippedItemSchema,
+    OrderSchema,
+    Generate856Request,
+    Generate856Response,
+)
+from schemas.po_850 import (
+    LineItem850Schema,
+    Generate850Request,
+    Generate850Response,
+)
 
 __all__ = [
     "LineItem",
@@ -15,4 +26,11 @@ __all__ = [
     "LineItem810Schema",
     "Generate810Request",
     "Generate810Response",
+    "ShippedItemSchema",
+    "OrderSchema",
+    "Generate856Request",
+    "Generate856Response",
+    "LineItem850Schema",
+    "Generate850Request",
+    "Generate850Response",
 ]
