@@ -31,7 +31,7 @@ def extract_delimiters(raw_edi_text: str) -> tuple[str, str]:
     Extracts element separator and segment terminator dynamically from ISA header.
     Dynamically finds the segment terminator after ISA16 (Component Element Separator).
     """
-    clean_text = raw_edi_text.strip()
+    clean_text = raw_edi_text.lstrip()
     if clean_text.startswith("ISA") and len(clean_text) >= 4:
         element_sep = clean_text[3]
         elements = clean_text.split(element_sep)
@@ -70,14 +70,17 @@ def parse_envelope_headers(segments: list, element_sep: str) -> dict:
 
 
 def safe_float(value: str, default: float = 0.0) -> float:
+    if value is None:
+        return default
     try:
         return float(value.strip())
-    except (ValueError, TypeError):
+    except (ValueError, TypeError, AttributeError):
         return default
 
-
 def safe_int(value: str, default: int = 0) -> int:
+    if value is None:
+        return default
     try:
         return int(float(value.strip()))
-    except (ValueError, TypeError):
+    except (ValueError, TypeError, AttributeError):
         return default
