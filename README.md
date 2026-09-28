@@ -69,7 +69,29 @@ curl -X 'POST' \
   ]
 }
 ```
-### 2. Parse & Dispatch to an ERP Webhook
+### 2. Generate an Outbound EDI File (Raw text/plain)
+Easily generate outbound documents like an 810 Invoice by hitting a generator's `/raw` endpoint.
+```bash
+curl -X 'POST' \
+  'http://localhost:8000/api/v1/generate/810/raw' \
+  -H 'Content-Type: application/json' \
+  -d '{
+    "invoice_number": "INV-9901",
+    "sender_id": "MYCOMPANY",
+    "receiver_id": "WALMART",
+    "line_items": [
+      {
+        "line_number": "1",
+        "quantity": 500,
+        "price": 12.5,
+        "sku": "WIDGET-BLUE"
+      }
+    ]
+  }'
+```
+
+
+### 3. Parse & Dispatch to an ERP Webhook
 Pass an optional `webhook_url` parameter to asynchronously push the JSON to your internal database or processing pipeline:
 ```bash
 curl -X 'POST' \

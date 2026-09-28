@@ -29,11 +29,11 @@ class Invoice810Generator(BaseGenerator):
         # ST - Header
         tx_segments.append(f"ST{self.element_sep}810{self.element_sep}{st_control_num}")
 
-        # BIG - Beginning Segment for Invoice
-        invoice_date = payload.get("invoice_date", dt.strftime("%Y%m%d"))
-        invoice_num = payload.get("invoice_number", "")
-        po_date = payload.get("po_date", "")
-        po_num = payload.get("po_number", "")
+        # BIG - Beginning Segment for Invoice (Safe fallbacks for None values)
+        invoice_date = payload.get("invoice_date") or dt.strftime("%Y%m%d")
+        invoice_num = payload.get("invoice_number") or ""
+        po_date = payload.get("po_date") or ""
+        po_num = payload.get("po_number") or ""
 
         big_elements = ["BIG", invoice_date, invoice_num, po_date, po_num]
         tx_segments.append(self.element_sep.join(big_elements))
@@ -74,8 +74,11 @@ class Invoice810Generator(BaseGenerator):
             if desc := item.get("description"):
                 tx_segments.append(f"PID{self.element_sep}F{self.element_sep}{self.element_sep}{self.element_sep}{self.element_sep}{desc}")
 
-        # TDS - Total Monetary Value Summary
-        tds_amount = str(int(round(payload.get("total_amount", total_invoice_amount) * 100)))
+        # TDS - Total Monetary Value Summary (Safe fallback for None total)
+        provided_total = payload.get("total_amount")
+        final_total = provided_total if provided_total is not None else total_invoice_amount
+
+        tds_amount = str(int(round(final_total * 100)))
         tx_segments.append(f"TDS{self.element_sep}{tds_amount}")
 
         # CTT - Transaction Totals
