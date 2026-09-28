@@ -1,5 +1,6 @@
-from fastapi import FastAPI, UploadFile, File, HTTPException
-from schemas import EDIDocumentSchema
+from fastapi import FastAPI, UploadFile, File, HTTPException, Response
+from schemas import EDIDocumentSchema, Outbound997Request
+from generators.ack_997 import Generator997
 from edi_parser import parse_x12_to_dict
 
 app = FastAPI(
@@ -22,3 +23,15 @@ async def parse_edi(file: UploadFile = File(...)):
     except Exception as e:
         raise HTTPException(status_code=400, detail=f"Failed to parse EDI payload: {str(e)}")
 
+@app.post(
+    "/api/v1/generate/997",
+    summary="Generate Outbound X12 997 Acknowledgment",
+    response_class=Response
+)
+async def generate_997(request: Outbound997Request):
+    try:
+        generator = Generator997()
+        raw_x12 = generator.generate(request.model_dump())
+        return Response(content=raw_x12, media_type="text/plain")
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=f"Failed to generate 997 EDI: {str(e)}")

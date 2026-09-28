@@ -29,3 +29,15 @@ class EDIDocumentSchema(BaseModel):
     tracking_number: Optional[str] = None
     line_items: Optional[List[Dict[str, Any]]] = []
     shipped_items: Optional[List[Dict[str, Any]]] = []
+
+class Outbound997Request(BaseModel):
+    sender_id: str = Field("MYCOMPANY", description="ISA06 Sender ID")
+    receiver_id: str = Field("TRADINGPARTNER", description="ISA08 Receiver ID")
+    control_number: str = Field("000000001", description="Control number")
+    acknowledged_functional_group: str = Field("PO", description="Group type being acknowledged")
+    acknowledged_group_control_number: str = Field("11", description="GS Control number being acknowledged")
+    acknowledgment_status: str = Field("A", description="A=Accepted, R=Rejected, P=Partial, E=Errors")
+    transaction_set_acknowledgments: Optional[List[Dict[str, Any]]] = []
+    group_totals: Optional[Dict[str, int]] = Field(
+        default_factory=lambda: {"included": 1, "received": 1, "accepted": 1}
+    )
