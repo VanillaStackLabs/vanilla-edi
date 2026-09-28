@@ -89,7 +89,19 @@ curl -X 'POST' \
     ]
   }'
 ```
-
+### Response (200 OK):
+```
+ISA*00*          *00*          *ZZ*MYCOMPANY      *ZZ*WALMART        *260928*1626*U*00401*000001001*0*P*>~
+GS*IN*MYCOMPANY*WALMART*20260928*1626*1001*X*004010~
+ST*810*1001~
+BIG*20260928*INV-9901**~
+IT1*1*500.0*EA*12.50**VN*WIDGET-BLUE~
+TDS*625000~
+CTT*1~
+SE*6*1001~
+GE*1*1001~
+IEA*1*000001001~
+```
 
 ### 3. Parse & Dispatch to an ERP Webhook
 Pass an optional `webhook_url` parameter to asynchronously push the JSON to your internal database or processing pipeline:
