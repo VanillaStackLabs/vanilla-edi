@@ -61,13 +61,14 @@ class Invoice810Generator(BaseGenerator):
             line_num = str(item.get("line_number", "1"))
             qty = str(item.get("quantity", 0))
             unit = item.get("unit_of_measure", "EA")
-            price = str(item.get("price", 0.0))
+            price_val = float(item.get("price", 0.0))
+            price_str = f"{price_val:.2f}"
             sku = item.get("sku", "")
 
             # Accumulate total for TDS segment
-            total_invoice_amount += float(qty) * float(price)
+            total_invoice_amount += float(qty) * price_val
 
-            it1_elements = ["IT1", line_num, qty, unit, price, "", "VN", sku]
+            it1_elements = ["IT1", line_num, qty, unit, price_str, "", "VN", sku]
             tx_segments.append(self.element_sep.join(it1_elements))
 
             if desc := item.get("description"):
