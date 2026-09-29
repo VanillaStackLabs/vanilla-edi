@@ -12,7 +12,7 @@ class LineItem850Schema(BaseEDISchema):
     description: Optional[str] = Field(None, description="PID05 Item description")
 
 class Generate850Request(BaseEDISchema):
-    transaction_code: str = "850"
+    transaction_code: ClassVar[str] = "850"
     sender_id: str = Field("BUYERCO", description="ISA06 Sender ID")
     receiver_id: str = Field("VENDORCO", description="ISA08 Receiver ID")
     control_number: str = Field("10001", description="ISA13 Control Number")
