@@ -1,11 +1,11 @@
+import pytest
 from fastapi.testclient import TestClient
-from main import app  # Ensure this points to where your FastAPI 'app' is instantiated
+from main import app
 
 client = TestClient(app)
 
 
 def test_810_full_round_trip():
-    # 1. Define the source data
     source_json = {
         "invoice_number": "INV-E2E-001",
         "sender_id": "MYCOMPANY",
