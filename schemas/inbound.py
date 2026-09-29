@@ -1,14 +1,15 @@
-from pydantic import BaseModel, Field, ConfigDict
+from pydantic import Field, ConfigDict
 from typing import List, Optional, Any, Dict
+from schemas.base import BaseEDISchema
 
-class LineItem(BaseModel):
+class LineItem(BaseEDISchema):
     line_number: str = Field(..., description="PO101 - Line item sequence identifier")
     quantity: int = Field(0, description="PO102 - Quantity ordered or invoiced")
     price: float = Field(0.0, description="PO104 - Unit price")
     sku: Optional[str] = Field("", description="PO107 / Vendor Part Number or SKU")
     description: Optional[str] = Field("", description="PID05 - Item description")
 
-class EDIDocumentSchema(BaseModel):
+class EDIDocumentSchema(BaseEDISchema):
     model_config = ConfigDict(extra="allow")
     transaction_type: str = Field(..., description="ST01 - Transaction set identifier code (e.g., 850, 810, 856, 997)")
     sender_id: Optional[str] = Field("", description="ISA06 - Interchange sender ID")

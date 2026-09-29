@@ -1,8 +1,9 @@
-from pydantic import BaseModel, Field
+from pydantic import Field
 from typing import List, Optional
 from schemas.invoice_810 import AddressSchema
+from schemas.base import BaseEDISchema
 
-class LineItem850Schema(BaseModel):
+class LineItem850Schema(BaseEDISchema):
     line_number: str = Field("1", description="PO101 Line sequence number")
     quantity: int = Field(..., description="PO102 Quantity ordered")
     unit_of_measure: str = Field("EA", description="PO103 Unit of measure code")
@@ -10,7 +11,7 @@ class LineItem850Schema(BaseModel):
     sku: str = Field(..., description="PO107 Vendor Part Number / SKU")
     description: Optional[str] = Field(None, description="PID05 Item description")
 
-class Generate850Request(BaseModel):
+class Generate850Request(BaseEDISchema):
     sender_id: str = Field("BUYERCO", description="ISA06 Sender ID")
     receiver_id: str = Field("VENDORCO", description="ISA08 Receiver ID")
     control_number: str = Field("10001", description="ISA13 Control Number")
@@ -22,6 +23,6 @@ class Generate850Request(BaseModel):
     line_items: List[LineItem850Schema] = Field(..., description="List of ordered items")
     total_amount: Optional[float] = Field(None, description="Total order amount (calculated automatically if omitted)")
 
-class Generate850Response(BaseModel):
+class Generate850Response(BaseEDISchema):
     success: bool = True
     edi_content: str

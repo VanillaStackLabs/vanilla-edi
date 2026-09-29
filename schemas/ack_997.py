@@ -1,7 +1,8 @@
-from pydantic import BaseModel, Field
+from pydantic import Field
 from typing import List, Optional, Dict, Any
+from schemas.base import BaseEDISchema
 
-class Outbound997Request(BaseModel):
+class Outbound997Request(BaseEDISchema):
     sender_id: str = Field("MYCOMPANY", description="ISA06 - Outbound sender ID")
     receiver_id: str = Field("TRADINGPARTNER", description="ISA08 - Outbound receiver ID")
     control_number: str = Field("000000001", description="ISA13 - Outbound interchange control number")
