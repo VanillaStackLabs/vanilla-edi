@@ -12,7 +12,7 @@ VanillaEDI bridges modern supply chain software with legacy EDI standard formats
 
 ## Key Features
 
-- Zero-Config Parsing: Supports 850 (Purchase Orders), 810 (Invoices), 856 (Advance Ship Notices), and 997 (Functional Acknowledgments).
+- Out-of-the-Box Core Schemas: Supports 850 (Purchase Orders), 810 (Invoices), 856 (Advance Ship Notices), and 997 (Functional Acknowledgments).
 - Async Webhook Dispatcher: Automatically forwards parsed JSON to your ERP or internal microservices in the background.
 - Resilient Fallbacks: Inferred transaction detection handles non-standard delimiters and malformed header tags seamlessly.
 - Outbound 997 Generator: Instantly build compliant X12 997 response files via simple JSON payloads.
