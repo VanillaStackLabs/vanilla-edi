@@ -1,20 +1,12 @@
-from pydantic import BaseModel
-from typing import Optional, Type, Dict
-
-# schemas/base.py
-from pydantic import BaseModel
-from typing import Optional, Type, Dict, ClassVar
+from pydantic import BaseModel, Field
+from typing import ClassVar, Dict, Type, Optional
 
 
 class BaseEDISchema(BaseModel):
-    """
-    Base class for all VanillaEDI schemas.
-    Automatically registers any subclass for dynamic runtime discovery.
-    """
-    transaction_code: str = ""
-    partner_id: str = "DEFAULT"
+    # Exclude from OpenAPI documentation since this is endpoint query metadata
+    transaction_code: ClassVar[str] = ""
+    partner_id: ClassVar[str] = "DEFAULT"
 
-    # ClassVar prevents Pydantic from converting this into a ModelPrivateAttr
     _registry: ClassVar[Dict[str, Type["BaseEDISchema"]]] = {}
 
     def __init_subclass__(cls, **kwargs):
@@ -29,6 +21,5 @@ class BaseEDISchema(BaseModel):
 
     @classmethod
     def get_schema_for(cls, transaction_type: str, partner_id: str = "DEFAULT") -> Optional[Type["BaseEDISchema"]]:
-        """Looks up a registered schema by partner ID and transaction code, falling back to DEFAULT."""
         partner_key = f"{partner_id}:{transaction_type}"
         return cls._registry.get(partner_key) or cls._registry.get(transaction_type)
