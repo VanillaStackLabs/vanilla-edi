@@ -28,21 +28,21 @@ class BaseParser:
 def extract_delimiters(raw_edi_text: str) -> tuple[str, str]:
     """
     Extracts element separator and segment terminator dynamically from ISA header.
-    Dynamically finds the segment terminator after ISA16 (Component Element Separator).
+    Uses strict 106-character positional indexing as required by ANSI X12.
     """
-    clean_text = raw_edi_text.lstrip()
-    if clean_text.startswith("ISA") and len(clean_text) >= 4:
-        element_sep = clean_text[3]
-        elements = clean_text.split(element_sep)
+    clean_text = raw_edi_text.lstrip('\ufeff \t\r\n')
 
-        if len(elements) > 16 and len(elements[16]) >= 2:
-            segment_term = elements[16][1]
-            return element_sep, segment_term
+    # Fallback to defaults if the file is severely truncated or not EDI
+    if not clean_text.startswith("ISA") or len(clean_text) < 106:
+        return "*", "~"
 
-        return element_sep, "~"
+    # In a standard ISA segment, index 3 is strictly the element separator
+    element_sep = clean_text[3]
 
-    return "*", "~"
+    # Index 105 is strictly the segment terminator
+    segment_term = clean_text[105]
 
+    return element_sep, segment_term
 
 def parse_envelope_headers(segments: list, element_sep: str) -> dict:
     """Extracts common ISA and ST header envelope metadata."""
