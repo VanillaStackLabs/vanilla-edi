@@ -1,6 +1,7 @@
+import importlib
+import pkgutil
 from fastapi import FastAPI
-from routers.parse import router as parse_router
-from routers.generate import router as generate_router
+import routers
 
 app = FastAPI(
     title="VanillaEDI",
@@ -8,9 +9,15 @@ app = FastAPI(
     version="1.0.0"
 )
 
-# Register Routers
-app.include_router(parse_router)
-app.include_router(generate_router)
+# Auto-discover and register all routers inside the routers/ folder
+for _, module_name, _ in pkgutil.iter_modules(routers.__path__):
+    full_module_name = f"routers.{module_name}"
+    module = importlib.import_module(full_module_name)
+
+    # If the module has an APIRouter named 'router', include it
+    if hasattr(module, "router"):
+        app.include_router(module.router)
+
 
 @app.get("/", tags=["Health"])
 def health_check():

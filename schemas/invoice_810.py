@@ -18,6 +18,7 @@ class LineItem810Schema(BaseEDISchema):
     description: Optional[str] = Field(None, description="Item description")
 
 class Generate810Request(BaseEDISchema):
+    transaction_code: str = "810"
     sender_id: str = Field("MYDISTRO", description="ISA06 Sender ID")
     receiver_id: str = Field("WALMART", description="ISA08 Receiver ID")
     control_number: str = Field("1001", description="ISA13 Control Number")

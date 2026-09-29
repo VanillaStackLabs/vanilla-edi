@@ -3,6 +3,7 @@ from typing import List, Optional, Dict, Any
 from schemas.base import BaseEDISchema
 
 class Outbound997Request(BaseEDISchema):
+    transaction_code: str = "997"
     sender_id: str = Field("MYCOMPANY", description="ISA06 - Outbound sender ID")
     receiver_id: str = Field("TRADINGPARTNER", description="ISA08 - Outbound receiver ID")
     control_number: str = Field("000000001", description="ISA13 - Outbound interchange control number")

@@ -13,6 +13,7 @@ class OrderSchema(BaseEDISchema):
     shipped_items: List[ShippedItemSchema] = Field(..., description="List of items included in this order")
 
 class Generate856Request(BaseEDISchema):
+    transaction_code: str = "856"
     sender_id: str = Field("MYDISTRO", description="ISA06 Sender ID")
     receiver_id: str = Field("WALMART", description="ISA08 Receiver ID")
     control_number: str = Field("5001", description="ISA13 Control Number")
