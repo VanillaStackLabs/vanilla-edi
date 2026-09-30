@@ -53,7 +53,11 @@ class Generator997(BaseGenerator):
                         f"AK4{self.element_sep}{elem_pos}{self.element_sep}{self.element_sep}{elem_code}{self.element_sep}{bad_val}{self.segment_term}"
                     )
 
-            segments.append(f"AK5{self.element_sep}{tx_stat}{self.segment_term}")
+            tx_err_code = tx.get("error_code")
+            if tx_err_code:
+                segments.append(f"AK5{self.element_sep}{tx_stat}{self.element_sep}{tx_err_code}{self.segment_term}")
+            else:
+                segments.append(f"AK5{self.element_sep}{tx_stat}{self.segment_term}")
 
         # AK9 - Group Summary
         totals = payload.get("group_totals", {})
