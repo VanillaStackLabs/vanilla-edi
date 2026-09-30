@@ -55,3 +55,42 @@ def test_generate_997_with_rejected_ak2_loop(client):
 
     assert "AK2" in raw_x12
     assert "AK5*R*5" in raw_x12
+
+def test_generate_997_with_ak3_ak4_error_loops_and_special_status():
+    payload = {
+        "sender_id": "SENDER",
+        "receiver_id": "RECV",
+        "control_number": "99",
+        "acknowledged_functional_group": "PO",
+        "acknowledged_group_control_number": "12",
+        "acknowledgment_status": "M",  # Hits line 60 (M/W branch)
+        "transaction_set_acknowledgments": [
+            {
+                "transaction_type": "850",
+                "control_number": "0001",
+                "status": "R",
+                "errors": [
+                    {
+                        "segment_id": "BEG",
+                        "segment_position": 3,
+                        "error_code": "1",
+                        "element_errors": [
+                            {
+                                "element_position": 2,
+                                "error_code": "5",
+                                "bad_value": "BAD_VAL"
+                            }
+                        ]
+                    }
+                ]
+            }
+        ]
+    }
+
+    generator = Generator997()
+    raw = generator.generate(payload)
+
+    # Verifies AK3, AK4, and AK9 for 'M' status
+    assert "AK3*BEG*3**1" in raw
+    assert "AK4*2**5*BAD_VAL" in raw
+    assert "AK9*M" in raw

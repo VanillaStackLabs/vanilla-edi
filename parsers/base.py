@@ -22,6 +22,9 @@ class BaseParser:
         for subclass in cls.__subclasses__():
             if subclass.transaction_code == transaction_type:
                 return subclass
+            sub_match = subclass.get_parser_for(transaction_type)
+            if sub_match:
+                return sub_match
         return None
 
 

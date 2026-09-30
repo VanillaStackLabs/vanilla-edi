@@ -56,7 +56,7 @@ class Parser810(BaseParser):
 
             # N3 - Street Address
             elif tag == "N3" and len(elements) >= 2 and current_entity is not None:
-                current_entity["address1"] = elements[1]
+                current_entity["address"] = elements[1]  # Mapped to Pydantic 'address'
 
             # N4 - City / State / ZIP
             elif tag == "N4" and len(elements) >= 4 and current_entity is not None:
@@ -69,7 +69,8 @@ class Parser810(BaseParser):
                 line_item = {
                     "line_number": elements[1],
                     "quantity": safe_int(elements[2]),
-                    "unit_price": safe_float(elements[4]),
+                    "unit_of_measure": elements[3] if len(elements) >= 4 else "EA",
+                    "price": safe_float(elements[4]),  # Mapped to Pydantic 'price'
                     "sku": elements[7] if len(elements) >= 8 else ""
                 }
                 parsed_data["line_items"].append(line_item)

@@ -9,9 +9,10 @@ SAMPLE_856 = (
     "BSN*00*SHIP-8849*20260928*1000~\n"
     "TD5****FDEG~\n"
     "REF*CN*1Z9999999999999999~\n"
+    "REF*ZZ*IGNOREME~\n"  # Added an unknown REF to cover the fallback branch
     "LIN*1**WIDGET-BLUE~\n"
     "SN1*1*500*EA~\n"
-    "SE*7*0001~\n"
+    "SE*8*0001~\n"
     "GE*1*1~\n"
     "IEA*1*000000003~"
 )
@@ -79,7 +80,7 @@ SAMPLE_NON_SHIPPABLE_856 = (
     "LIN*00001*BP*555SWL`*VP*VENDSWL~\n"
     "SN1**1*EA~\n"
     "REF*BB*AUTH1~\n"
-    "REF*PLA*~"
+    "REF*PLA*AUTH2~"  # Changed from empty to an actual value to cover the array append
 )
 
 def test_parse_856_ship_notice(client):
@@ -123,3 +124,4 @@ def test_parse_856_non_shippable_software(client):
     assert len(data["shipped_items"]) == 1
     assert data["shipped_items"][0]["vendor_part"] == "VENDSWL"
     assert data["shipped_items"][0]["quantity_shipped"] == 1
+    assert data["shipped_items"][0]["authorization_codes"] == ["AUTH1", "AUTH2"]

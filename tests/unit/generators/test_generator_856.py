@@ -75,3 +75,26 @@ def test_asn_856_generation_structure(sample_856_payload):
 
     assert int(se_parts[1]) == actual_segment_count
     assert se_parts[2] == "5001"
+
+
+def test_asn_856_minimal_payload_branch_coverage():
+    # Omits tracking_number, ship_from, and ship_to to test skipped branches
+    minimal_payload = {
+        "control_number": "999",
+        "orders": [
+            {
+                "po_number": "PO-123",
+                "shipped_items": [
+                    {"sku": "TEST-SKU", "quantity": 1}
+                ]
+            }
+        ]
+    }
+    generator = ASN856Generator(element_sep="*", segment_term="~\n")
+    edi_output = generator.generate(minimal_payload)
+
+    assert "ST*856*0999" in edi_output
+    assert "REF*CN*" not in edi_output  # No tracking
+    assert "N1*SF*" not in edi_output  # No Ship From
+    assert "N1*ST*" not in edi_output  # No Ship To
+    assert "LIN**VN*TEST-SKU" in edi_output

@@ -109,3 +109,41 @@ def test_invoice_810_automatic_amount_calculation():
 
     # 10 * 5.00 = 50.00 -> 5000 cents
     assert "TDS*5000" in edi_output
+
+
+def test_invoice_810_minimal_payload_branch_coverage():
+    # Omits line item description to ensure the PID loop is skipped
+    minimal_payload = {
+        "control_number": "999",
+        "line_items": [
+            {
+                "line_number": "1",
+                "quantity": 1,
+                "price": 100.00,
+                "sku": "NO-DESC-SKU"
+                # description intentionally omitted
+            }
+        ]
+    }
+    generator = Invoice810Generator(element_sep="*", segment_term="~\n")
+    edi_output = generator.generate(minimal_payload)
+
+    assert "ST*810*0999" in edi_output
+    assert "IT1*1*1*EA*100.00**VN*NO-DESC-SKU" in edi_output
+    assert "PID*F*" not in edi_output  # Ensures PID branch was skipped
+
+
+def test_invoice_810_missing_address_branches():
+    # Provides bill_to and remit_to without 'address' to skip N2 generation
+    payload = {
+        "control_number": "999",
+        "remit_to": {"name": "REMIT NAME", "city": "C1", "state": "S1", "zip": "Z1"},
+        "bill_to": {"name": "BILL NAME", "city": "C2", "state": "S2", "zip": "Z2"},
+        "line_items": []
+    }
+    generator = Invoice810Generator()
+    edi_output = generator.generate(payload)
+
+    assert "N1*RE*REMIT NAME" in edi_output
+    assert "N1*BT*BILL NAME" in edi_output
+    assert "N2*" not in edi_output  # Proves the N2 address branches were bypassed

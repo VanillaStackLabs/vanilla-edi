@@ -1,8 +1,28 @@
 import pytest
 from fastapi.testclient import TestClient
 from main import app
+from unittest.mock import patch
 
 client = TestClient(app)
+
+# --- Exception Tests ---
+def test_execute_generator_exception_branch(sample_810_payload):
+    # Patch the generate method on the class before generator_cls() is instantiated
+    with patch("generators.invoice_810.Invoice810Generator.generate", side_effect=ValueError("Mocked generator error")):
+        response = client.post("/api/v1/generate/810", json=sample_810_payload)
+        assert response.status_code == 400
+        assert response.json()["detail"] == "Failed to generate 810 EDI: Mocked generator error"
+
+
+def test_execute_generator_fallback_raw_return(sample_810_payload):
+    # Calls execute_generator without raw=True and without response_model_cls
+    from routers.generate import execute_generator
+    from schemas import Generate810Request
+    from generators.invoice_810 import Invoice810Generator
+
+    payload = Generate810Request(**sample_810_payload)
+    response = execute_generator(Invoice810Generator, payload)
+    assert response.media_type == "text/plain"
 
 # --- 997 Endpoint Tests ---
 def test_generate_997_endpoint():

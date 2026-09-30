@@ -33,6 +33,19 @@ SAMPLE_TAX_EXEMPT_850 = (
     "SE*15*0001~"
 )
 
+SAMPLE_PER_WITHOUT_PHONE_850 = (
+    "ISA*00*          *00*          *ZZ*WALMART        *ZZ*MYCOMPANY      *260928*1000*U*00401*000000001*0*P*>~\n"
+    "GS*PO*WALMART*MYCOMPANY*20260928*1000*1*X*004010~\n"
+    "ST*850*0001~\n"
+    "BEG*00*SA*PO-998231**20260928~\n"
+    "PER*BD*JANE DOE~\n"  # PER segment without TE qualifier/phone
+    "PO1*001*10*EA*5.00**VP*ITEM-1~\n"
+    "CTT*1~\n"
+    "SE*7*0001~\n"
+    "GE*1*1~\n"
+    "IEA*1*000000001~"
+)
+
 def test_parse_850_purchase_order(client):
     response = client.post(
         "/api/v1/parse",
@@ -77,3 +90,13 @@ def test_parse_aerospace_snippet_850(client):
     assert data["line_items"][0]["sku"] == "R5656-2"
     assert data["line_items"][0]["quantity"] == 48
     assert data["line_items"][0]["price"] == 3.0
+
+def test_parse_850_per_without_phone(client):
+    response = client.post(
+        "/api/v1/parse",
+        files={"file": ("no_phone.edi", SAMPLE_PER_WITHOUT_PHONE_850, "text/plain")}
+    )
+    assert response.status_code == 200
+    data = response.json()
+    assert data["buyer_contact"]["name"] == "JANE DOE"
+    assert "phone" not in data["buyer_contact"]

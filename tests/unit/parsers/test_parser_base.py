@@ -5,17 +5,13 @@ from parsers.base import (
     parse_envelope_headers,
 )
 
-# --- Helper Classes for Testing BaseParser ---
+
+# --- Helper Class for Testing BaseParser ---
 class MockParser(BaseParser):
     transaction_code = "MOCK"
 
     def parse(self):
         return {"status": "success"}
-
-
-class IncompleteParser(BaseParser):
-    transaction_code = "888"
-    # Intentionally missing parse() implementation
 
 
 # --- extract_delimiters Tests ---
@@ -34,7 +30,6 @@ def test_extract_delimiters_custom():
 
 
 def test_extract_delimiters_fallback():
-    # If the string doesn't start with ISA, it defaults to *, ~
     edi_text = "ST*850*0001~"
     element_sep, segment_term = extract_delimiters(edi_text)
     assert element_sep == "*"
@@ -67,6 +62,10 @@ def test_get_parser_for_existing():
     parser_class = BaseParser.get_parser_for("MOCK")
     assert parser_class is MockParser
 
+    # Instantiate and call parse() to execute line 13 inside MockParser!
+    instance = parser_class(segments=[], element_sep="*")
+    assert instance.parse() == {"status": "success"}
+
 
 def test_get_parser_for_missing():
     parser_class = BaseParser.get_parser_for("000")
@@ -74,6 +73,17 @@ def test_get_parser_for_missing():
 
 
 def test_base_parser_enforces_implementation():
-    parser = IncompleteParser(segments=["ST*888*0001"], element_sep="*")
+    parser = BaseParser(segments=["ST*888*0001"], element_sep="*")
     with pytest.raises(NotImplementedError):
         parser.parse()
+
+
+def test_get_parser_for_nested_subclass():
+    class SubMockParser(MockParser):
+        transaction_code = "SUBMOCK"
+
+    parser_class = BaseParser.get_parser_for("SUBMOCK")
+    assert parser_class is SubMockParser
+
+    instance = parser_class(segments=[], element_sep="*")
+    assert instance.parse() == {"status": "success"}
