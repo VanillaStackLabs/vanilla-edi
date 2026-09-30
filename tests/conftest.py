@@ -1,4 +1,6 @@
 import pytest
+from fastapi.testclient import TestClient
+from main import app
 
 @pytest.fixture
 def sample_810_payload():
@@ -76,3 +78,9 @@ def sample_850_payload():
             {"line_number": "2", "quantity": 100, "unit_of_measure": "EA", "price": 5.50, "sku": "ITEM-Y"}
         ]
     }
+
+@pytest.fixture
+def client():
+    """Provides a fresh, isolated FastAPI TestClient for integration tests."""
+    with TestClient(app) as c:
+        yield c

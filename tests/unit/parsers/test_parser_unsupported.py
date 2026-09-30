@@ -1,10 +1,8 @@
 import pytest
-from fastapi.testclient import TestClient
 from main import app
 
-client = TestClient(app)
 
-def test_unsupported_transaction():
+def test_unsupported_transaction(client):
     unsupported_edi = "ISA*...~\nST*999*0001~\nSE*2*0001~\nIEA*1*000000001~"
     response = client.post(
         "/api/v1/parse",

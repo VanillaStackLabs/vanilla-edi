@@ -1,8 +1,6 @@
 import pytest
-from fastapi.testclient import TestClient
 from main import app
 
-client = TestClient(app)
 
 SAMPLE_856 = (
     "ISA*00*          *00*          *ZZ*MYCOMPANY      *ZZ*WALMART        *260928*1000*U*00401*000000003*0*P*>~\n"
@@ -84,7 +82,7 @@ SAMPLE_NON_SHIPPABLE_856 = (
     "REF*PLA*~"
 )
 
-def test_parse_856_ship_notice():
+def test_parse_856_ship_notice(client):
     response = client.post(
         "/api/v1/parse",
         files={"file": ("test_856.edi", SAMPLE_856, "text/plain")}
@@ -96,7 +94,7 @@ def test_parse_856_ship_notice():
     assert data["tracking_number"] == "1Z9999999999999999"
     assert data["shipped_items"][0]["quantity_shipped"] == 500
 
-def test_parse_856_pack_item_structure():
+def test_parse_856_pack_item_structure(client):
     response = client.post(
         "/api/v1/parse",
         files={"file": ("test_856.edi", SAMPLE_PACK_ITEM_856, "text/plain")},
@@ -111,7 +109,7 @@ def test_parse_856_pack_item_structure():
     assert len(data["shipped_items"]) == 4
     assert "211UA6140H4V" in data["shipped_items"][0]["serial_numbers"]
 
-def test_parse_856_non_shippable_software():
+def test_parse_856_non_shippable_software(client):
     response = client.post(
         "/api/v1/parse",
         files={"file": ("software_856.edi", SAMPLE_NON_SHIPPABLE_856, "text/plain")},

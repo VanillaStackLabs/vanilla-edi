@@ -1,8 +1,6 @@
 import pytest
-from fastapi.testclient import TestClient
 from main import app
 
-client = TestClient(app)
 
 SAMPLE_EX1_ACCEPTED = "ST*997*0001~AK1*PO*11~AK9*A*3*3*3~SE*4*0001~"
 SAMPLE_EX6_MAC_FAIL = "ST*997*0001~AK1*PO*11~AK9*M~SE*4*0001~"
@@ -27,7 +25,7 @@ SAMPLE_REJECTED_997 = (
     "SE*7*0002~"
 )
 
-def test_parse_997_accepted_summary():
+def test_parse_997_accepted_summary(client):
     response = client.post(
         "/api/v1/parse",
         files={"file": ("ack.edi", SAMPLE_EX1_ACCEPTED, "text/plain")},
@@ -38,7 +36,7 @@ def test_parse_997_accepted_summary():
     assert data["group_totals"]["accepted"] == 3
 
 
-def test_parse_997_mac_failure():
+def test_parse_997_mac_failure(client):
     response = client.post(
         "/api/v1/parse",
         files={"file": ("ack_mac.edi", SAMPLE_EX6_MAC_FAIL, "text/plain")},
@@ -49,7 +47,7 @@ def test_parse_997_mac_failure():
     assert data["group_totals"] == {}
 
 
-def test_parse_997_decryption_failure():
+def test_parse_997_decryption_failure(client):
     response = client.post(
         "/api/v1/parse",
         files={"file": ("ack_decrypt.edi", SAMPLE_EX7_DECRYPT_FAIL, "text/plain")},
@@ -59,7 +57,7 @@ def test_parse_997_decryption_failure():
     assert data["acknowledgment_status"] == "X"
     assert data["group_totals"]["accepted"] == 0
 
-def test_parse_clean_997_acknowledgment():
+def test_parse_clean_997_acknowledgment(client):
     response = client.post(
         "/api/v1/parse",
         files={"file": ("ack.edi", SAMPLE_CLEAN_997, "text/plain")},
@@ -75,7 +73,7 @@ def test_parse_clean_997_acknowledgment():
     assert data["group_totals"]["accepted"] == 1
 
 
-def test_parse_rejected_997_acknowledgment():
+def test_parse_rejected_997_acknowledgment(client):
     response = client.post(
         "/api/v1/parse",
         files={"file": ("reject.edi", SAMPLE_REJECTED_997, "text/plain")},

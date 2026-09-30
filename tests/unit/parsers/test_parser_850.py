@@ -1,8 +1,6 @@
 import pytest
-from fastapi.testclient import TestClient
 from main import app
 
-client = TestClient(app)
 
 SAMPLE_850 = (
     "ISA*00*          *00*          *ZZ*WALMART        *ZZ*MYCOMPANY      *260928*1000*U*00401*000000001*0*P*>~\n"
@@ -35,7 +33,7 @@ SAMPLE_TAX_EXEMPT_850 = (
     "SE*15*0001~"
 )
 
-def test_parse_850_purchase_order():
+def test_parse_850_purchase_order(client):
     response = client.post(
         "/api/v1/parse",
         files={"file": ("test_850.edi", SAMPLE_850, "text/plain")}
@@ -49,7 +47,7 @@ def test_parse_850_purchase_order():
     assert data["line_items"][0]["sku"] == "WIDGET-BLUE"
     assert data["line_items"][0]["price"] == 12.50
 
-def test_parse_tax_exempt_850():
+def test_parse_tax_exempt_850(client):
     response = client.post(
         "/api/v1/parse",
         files={"file": ("tax_exempt.edi", SAMPLE_TAX_EXEMPT_850, "text/plain")},
@@ -65,7 +63,7 @@ def test_parse_tax_exempt_850():
     assert data["ship_to"]["division"] == "AIRCRAFT DIVISION"
     assert data["line_items"][0]["price"] == 36.0
 
-def test_parse_aerospace_snippet_850():
+def test_parse_aerospace_snippet_850(client):
     response = client.post(
         "/api/v1/parse",
         files={"file": ("aerospace.edi", SAMPLE_AEROSPACE_850, "text/plain")}

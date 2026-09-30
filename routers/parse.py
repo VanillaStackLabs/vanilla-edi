@@ -5,13 +5,13 @@ from edi_parser import parse_x12_to_dict
 from services.webhooks import dispatch_webhook
 from parsers.stream import EDIStreamParser
 
-router = APIRouter(prefix="/api/v1", tags=["Parser"])
+router = APIRouter(prefix="/api/v1/parse", tags=["Parser"])
 
-@router.post("/parse", response_model=EDIDocumentSchema, summary="Parse X12 EDI File to JSON")
+@router.post("", response_model=EDIDocumentSchema, summary="Parse X12 EDI File to JSON")
 async def parse_edi(
-        background_tasks: BackgroundTasks,
-        file: UploadFile = File(...),
-        webhook_url: str = Form(None, description="Optional URL to forward the parsed JSON to")
+    background_tasks: BackgroundTasks,
+    file: UploadFile = File(...),
+    webhook_url: str = Form(None, description="Optional URL to forward the parsed JSON to")
 ):
     try:
         content = await file.read()
@@ -43,8 +43,7 @@ async def process_edi_stream(file: UploadFile):
     except ValueError as e:
         yield f'{{"error": "{str(e)}"}}\n'
 
-
-@router.post("/parse/stream", summary="Stream Parse Massive X12 EDI Files")
+@router.post("/stream", summary="Stream Parse Massive X12 EDI Files")
 async def stream_large_edi(file: UploadFile = File(...)):
     """
     Parses massive batch EDI files with near-zero memory footprint.

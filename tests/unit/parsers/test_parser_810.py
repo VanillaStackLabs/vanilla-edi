@@ -1,8 +1,6 @@
 import pytest
-from fastapi.testclient import TestClient
 from main import app
 
-client = TestClient(app)
 
 SAMPLE_810 = (
     "ISA*00*          *00*          *ZZ*MYCOMPANY      *ZZ*WALMART        *260928*1000*U*00401*000000002*0*P*>~\n"
@@ -41,7 +39,7 @@ SAMPLE_CREDIT_CARD_810 = (
     "SE*8*0001~"
 )
 
-def test_parse_810_invoice():
+def test_parse_810_invoice(client):
     response = client.post(
         "/api/v1/parse",
         files={"file": ("test_810.edi", SAMPLE_810, "text/plain")}
@@ -54,7 +52,7 @@ def test_parse_810_invoice():
     assert data["total_amount"] == 6250.00
     assert data["remit_to"]["name"] == "ACME PAYMENTS LLC"
 
-def test_parse_aerospace_810_invoice():
+def test_parse_aerospace_810_invoice(client):
     response = client.post(
         "/api/v1/parse",
         files={"file": ("invoice.edi", SAMPLE_AEROSPACE_810, "text/plain")},
@@ -71,7 +69,7 @@ def test_parse_aerospace_810_invoice():
     assert data["ship_to"]["name"] == "ABC AEROSPACE CORPORATION"
     assert data["line_items"][0]["unit_price"] == 3.0
 
-def test_parse_credit_card_810_invoice():
+def test_parse_credit_card_810_invoice(client):
     response = client.post(
         "/api/v1/parse",
         files={"file": ("cc_invoice.edi", SAMPLE_CREDIT_CARD_810, "text/plain")},
