@@ -24,3 +24,6 @@ If applicable, provide a sanitized snippet of the EDI payload you are trying to 
 ```text
 Replace this text with your sample X12 string or desired JSON schema output.
 ```
+
+### Additional Context
+Add any other context, API design suggestions, or screenshots about the feature request here.
