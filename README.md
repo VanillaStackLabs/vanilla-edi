@@ -33,7 +33,10 @@ Your API is now live at http://localhost:8000.
 
 Interactive Swagger documentation is available at http://localhost:8000/docs.
 
+Static Swagger documentation is available at https://vanillastacklabs.github.io/vanilla-edi/.
+
 ---
+
 ## API Usage Examples
 ### 1. Parse an EDI File to JSON
 ```bash
