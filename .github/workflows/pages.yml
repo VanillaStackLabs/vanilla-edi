@@ -34,7 +34,7 @@ jobs:
         run: pip install -r requirements.txt
 
       - name: Generate OpenAPI JSON
-        run: python export_openapi.py
+        run: python scripts/export_openapi.py
 
       - name: Setup Pages
         uses: actions/configure-pages@v5
