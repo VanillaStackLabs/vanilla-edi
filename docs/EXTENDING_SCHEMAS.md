@@ -70,7 +70,7 @@ When an incoming EDI file is streamed to `/api/v1/parse`:
 4. If no partner match is registered, it falls back to the default `850` schema.
 ---
 ## 4. Automatic Schema Export & OpenAPI Docs
-Every custom schema automatically inherits Pydantic V2 JSON-Schema generation.
+Every custom schema automatically inherits Pydantic v2 JSON-Schema generation.
 
 Hitting `GET /schemas/WALMART:850` will output the exact JSON Schema for that partner override, enabling AI agents, front-end forms, and third-party integrations to inspect requirements dynamically.
 

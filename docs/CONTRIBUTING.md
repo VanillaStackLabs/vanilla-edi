@@ -39,7 +39,7 @@ pytest --cov=. --cov-report=term-missing
 2. Write clean, readable code following PEP 8 guidelines.
 3. Ensure all tests pass and coverage remains at 100%.
 4. Commit your changes (`git commit -m "feat: add support for feature X`).
-5. Push to your branch (`git push origina feature/amazing-new-feature`).
+5. Push to your branch (`git push origin feature/amazing-new-feature`).
 6. Open a Pull Request agains the `main` branch.
 
 ---
