@@ -60,7 +60,7 @@ class ASN856Generator(BaseGenerator):
         if ship_to := payload.get("ship_to"):
             tx_segments.append(f"N1{self.element_sep}ST{self.element_sep}{ship_to.get('name', '')}")
 
-        # --- LEVEL 2: ORDER (O) ---
+        # --- LEVEL 2: ORDER (O) & DYNAMIC CHILD LEVELS ---
         orders: List[Dict[str, Any]] = payload.get("orders", [])
         for order in orders:
             hl_counter += 1
@@ -68,23 +68,64 @@ class ASN856Generator(BaseGenerator):
             # HL: ID, Parent ID (shipment_hl_id), Level Code (O)
             tx_segments.append(f"HL{self.element_sep}{order_hl_id}{self.element_sep}{shipment_hl_id}{self.element_sep}O")
 
-            po_num = order.get("po_number", "")
-            tx_segments.append(f"PRF{self.element_sep}{po_num}")
+            if po_num := order.get("po_number"):
+                tx_segments.append(f"PRF{self.element_sep}{po_num}")
 
-            # --- LEVEL 3: ITEM (I) ---
-            items: List[Dict[str, Any]] = order.get("shipped_items", order.get("items", []))
-            for item in items:
-                hl_counter += 1
-                item_hl_id = hl_counter
-                # HL: ID, Parent ID (order_hl_id), Level Code (I)
-                tx_segments.append(f"HL{self.element_sep}{item_hl_id}{self.element_sep}{order_hl_id}{self.element_sep}I")
+            # Helper to write Item loops
+            def write_items(items_list, parent_hl_id):
+                nonlocal hl_counter
+                for item in items_list:
+                    hl_counter += 1
+                    tx_segments.append(f"HL{self.element_sep}{hl_counter}{self.element_sep}{parent_hl_id}{self.element_sep}I")
 
-                sku = item.get("sku", "")
-                qty = str(item.get("quantity", 1))
-                uom = item.get("unit_of_measure", "EA")
+                    line_num = item.get("line_number", "")
+                    sku = item.get("sku", "")
+                    qty = str(item.get("quantity", 1))
+                    uom = item.get("unit_of_measure", "EA")
 
-                tx_segments.append(f"LIN{self.element_sep}{self.element_sep}VN{self.element_sep}{sku}")
-                tx_segments.append(f"SN1{self.element_sep}{self.element_sep}{qty}{self.element_sep}{uom}")
+                    tx_segments.append(f"LIN{self.element_sep}{line_num}{self.element_sep}VN{self.element_sep}{sku}")
+                    tx_segments.append(f"SN1{self.element_sep}{self.element_sep}{qty}{self.element_sep}{uom}")
+
+            # Helper to write Pack (Carton) loops
+            def write_packs(packs_list, parent_hl_id):
+                nonlocal hl_counter
+                for pack in packs_list:
+                    hl_counter += 1
+                    pack_hl_id = hl_counter
+                    tx_segments.append(f"HL{self.element_sep}{pack_hl_id}{self.element_sep}{parent_hl_id}{self.element_sep}P")
+
+                    # Add MAN segment for carton barcodes if they exist
+                    if cartons := pack.get("cartons"):
+                        for carton in cartons:
+                            if sscc := carton.get("sscc") or carton.get("tracking"):
+                                tx_segments.append(f"MAN{self.element_sep}GM{self.element_sep}{sscc}")
+
+                    if pack_items := pack.get("items"):
+                        write_items(pack_items, pack_hl_id)
+
+            # Route the hierarchy based on the provided payload structure
+            if tares := order.get("tares"):
+                # Path 1: S-O-T-P-I (Palletized)
+                for tare in tares:
+                    hl_counter += 1
+                    tare_hl_id = hl_counter
+                    tx_segments.append(f"HL{self.element_sep}{tare_hl_id}{self.element_sep}{order_hl_id}{self.element_sep}T")
+
+                    if pallets := tare.get("pallets"):
+                        for pallet in pallets:
+                            if sscc := pallet.get("sscc"):
+                                tx_segments.append(f"MAN{self.element_sep}GM{self.element_sep}{sscc}")
+
+                    if packs := tare.get("packs"):
+                        write_packs(packs, tare_hl_id)
+
+            elif packs := order.get("packs"):
+                # Path 2: S-O-P-I (Cartonized, no Pallets)
+                write_packs(packs, order_hl_id)
+
+            elif items := order.get("items"):
+                # Path 3: S-O-I (Loose Items)
+                write_items(items, order_hl_id)
 
         # CTT - Transaction Totals (Count of HL segments)
         tx_segments.append(f"CTT{self.element_sep}{hl_counter}")
