@@ -9,7 +9,7 @@ Thank you for considering constributing to VanillaEDI! We welcome bug reports, f
 Clone the respository and set up your virtual environment:
 
 ```bash
-git clone [https://github.com/VanillaStackLabs/vanilla-edi.git](https://github.com/VanillaStackLabs/vanilla-edi.git)
+git clone https://github.com/VanillaStackLabs/vanilla-edi.git
 cd vanilla-edi
 
 python -m venv .venv
