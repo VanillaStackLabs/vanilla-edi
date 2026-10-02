@@ -16,11 +16,13 @@ class Parser810(BaseParser):
             "total_amount": 0.0,
             "payment_terms": {},
             "remit_to": {},
+            "bill_to": {},
             "ship_to": {},
             "line_items": []
         }
 
         current_entity = None
+        current_line_item = None
 
         for segment in self.segments:
             clean_segment = segment.replace("\n", " ").replace("\r", "").strip()
@@ -36,27 +38,30 @@ class Parser810(BaseParser):
                 if len(elements) >= 6:
                     parsed_data["release_number"] = elements[5]
 
-            # ITD - Terms of Sale / Deferred Terms
+            # ITD - Terms of Sale
             elif tag == "ITD":
                 parsed_data["payment_terms"] = {
                     "terms_type": elements[1] if len(elements) >= 2 else "",
                     "net_days": safe_int(elements[7]) if len(elements) >= 8 else 0
                 }
 
-            # N1 - Name (Remit To, Ship To, or Bill To)
+            # N1 - Name
             elif tag == "N1" and len(elements) >= 3:
                 entity_type = elements[1]
                 entity_name = elements[2]
                 if entity_type in ["RE", "RI"]:
                     parsed_data["remit_to"]["name"] = entity_name
                     current_entity = parsed_data["remit_to"]
-                elif entity_type in ["ST", "BY", "BT"]:
+                elif entity_type in ["BT", "BY"]:
+                    parsed_data["bill_to"]["name"] = entity_name
+                    current_entity = parsed_data["bill_to"]
+                elif entity_type == "ST":
                     parsed_data["ship_to"]["name"] = entity_name
                     current_entity = parsed_data["ship_to"]
 
             # N3 - Street Address
             elif tag == "N3" and len(elements) >= 2 and current_entity is not None:
-                current_entity["address"] = elements[1]  # Mapped to Pydantic 'address'
+                current_entity["address"] = elements[1]
 
             # N4 - City / State / ZIP
             elif tag == "N4" and len(elements) >= 4 and current_entity is not None:
@@ -70,10 +75,16 @@ class Parser810(BaseParser):
                     "line_number": elements[1],
                     "quantity": safe_int(elements[2]),
                     "unit_of_measure": elements[3] if len(elements) >= 4 else "EA",
-                    "price": safe_float(elements[4]),  # Mapped to Pydantic 'price'
-                    "sku": elements[7] if len(elements) >= 8 else ""
+                    "price": safe_float(elements[4]),
+                    "sku": elements[7] if len(elements) >= 8 else "",
+                    "description": None
                 }
                 parsed_data["line_items"].append(line_item)
+                current_line_item = line_item
+
+            # PID - Item Description
+            elif tag == "PID" and len(elements) >= 6 and current_line_item is not None:
+                current_line_item["description"] = elements[5]
 
             # TDS - Total Monetary Value Summary
             elif tag == "TDS" and len(elements) >= 2:
