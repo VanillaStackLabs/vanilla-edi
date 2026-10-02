@@ -2,12 +2,12 @@
 
 ## Supported Versions
 
-Only the latest release on the `main` branch receives active security updates.
+Only the latest pre-release version on the `main` branch receives active security updates. 
 
 | Version | Supported |
 | ------- |-----------|
-| `main`  | ✓         |
-| < 1.0   | X         |
+| `0.x.x` (Latest) | ✓         |
+| Older branches   | X         |
 
 ## Reporting a Vulnerability
 
