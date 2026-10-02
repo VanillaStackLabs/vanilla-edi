@@ -70,7 +70,7 @@ def test_856_full_round_trip():
         "orders": [
             {
                 "po_number": "PO-12345",
-                "shipped_items": [
+                "items": [
                     {"sku": "SKU-99", "quantity": 50, "unit_of_measure": "EA"}
                 ]
             }
@@ -88,5 +88,12 @@ def test_856_full_round_trip():
 
     parsed = parse_response.json()
     assert parsed["shipment_id"] == source_json["shipment_id"]
-    assert parsed["shipped_items"][0]["sku"] == "SKU-99"
-    assert parsed["shipped_items"][0]["quantity_shipped"] == 50
+
+    # Traverse the new hierarchy to find the item
+    # Hierarchy: Shipment -> Order -> Item
+    hierarchy = parsed.get("hierarchy", {})
+    order_node = hierarchy.get("children", [])[0]
+    item_node = order_node.get("children", [])[0]
+
+    assert item_node["details"]["item"]["sku"] == "SKU-99"
+    assert item_node["details"]["item"]["quantity_shipped"] == 50

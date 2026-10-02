@@ -60,7 +60,7 @@ def test_generate_856_request_schema():
         "orders": [
             {
                 "po_number": "PO-123",
-                "shipped_items": [{"sku": "SKU-1", "quantity": 100}]
+                "items": [{"sku": "SKU-1", "quantity": 100}]
             }
         ]
     }
@@ -68,7 +68,7 @@ def test_generate_856_request_schema():
 
     assert schema.shipment_id == "SH-999"
     assert schema.carrier_code == "FDEG"  # Default SCAC
-    assert schema.orders[0].shipped_items[0].quantity == 100
+    assert schema.orders[0].items[0].quantity == 100
 
 
 def test_generate_850_request_schema():
