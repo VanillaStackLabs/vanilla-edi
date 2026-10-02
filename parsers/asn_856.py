@@ -12,12 +12,12 @@ class Parser856(BaseParser):
             "shipment_id": "",
             "ship_date": "",
             "carrier_code": "",
-            "tracking_number": "",
-            "cartons": [],
-            "shipped_items": []
+            "hierarchy": {}
         }
 
-        current_item = None
+        # State tracking for HL segments
+        nodes = {}
+        current_hl_id = None
 
         for segment in self.segments:
             clean_segment = segment.replace("\n", " ").replace("\r", "").strip()
@@ -29,40 +29,52 @@ class Parser856(BaseParser):
                 parsed_data["shipment_id"] = elements[2]
                 parsed_data["ship_date"] = elements[3]
 
+            # HL - Hierarchical Level (The Engine)
+            elif tag == "HL" and len(elements) >= 4:
+                hl_id = elements[1]
+                parent_id = elements[2] if elements[2] else None
+                level_code = elements[3]
+
+                # Initialize the current node
+                nodes[hl_id] = {
+                    "level_code": level_code,
+                    "details": {},
+                    "children": []
+                }
+                current_hl_id = hl_id
+
+                # Link this node to its parent, or set it as the root
+                if parent_id and parent_id in nodes:
+                    nodes[parent_id]["children"].append(nodes[hl_id])
+                elif not parent_id:
+                    parsed_data["hierarchy"] = nodes[hl_id]  # Root node (Shipment)
+
+            # PRF - Purchase Order Reference (Belongs to Order Level)
+            elif tag == "PRF" and len(elements) >= 2 and current_hl_id:
+                nodes[current_hl_id]["details"]["po_number"] = elements[1]
+
             # TD5 - Carrier Details
             elif tag == "TD5" and len(elements) >= 5:
                 parsed_data["carrier_code"] = elements[3]
 
-            # MAN - Carton Barcode / SSCC-18
-            elif tag == "MAN" and len(elements) >= 3:
-                parsed_data["cartons"].append({"sscc_18": elements[2]})
+            # MAN - Carton Barcode (Belongs to Tare/Pack Level)
+            elif tag == "MAN" and len(elements) >= 3 and current_hl_id:
+                if "cartons" not in nodes[current_hl_id]["details"]:
+                    nodes[current_hl_id]["details"]["cartons"] = []
+                nodes[current_hl_id]["details"]["cartons"].append({"sscc_18": elements[2]})
 
-            elif tag == "REF" and len(elements) >= 3:
-                ref_type = elements[1]
-                ref_value = elements[2]
-
-                if ref_type in ["2I", "CN"]:
-                    parsed_data["tracking_number"] = ref_value
-                elif ref_type == "SE" and current_item:
-                    current_item["serial_numbers"].append(ref_value)
-                elif ref_type in ["BB", "PLA"] and current_item:
-                    if "authorization_codes" not in current_item:
-                        current_item["authorization_codes"] = []
-                    current_item["authorization_codes"].append(ref_value)
-
-            # LIN - Item Identification
-            elif tag == "LIN" and len(elements) >= 4:
-                current_item = {
+            # LIN - Item Identification (Belongs to Item Level)
+            elif tag == "LIN" and len(elements) >= 4 and current_hl_id:
+                nodes[current_hl_id]["details"]["item"] = {
                     "line_number": elements[1],
                     "sku": elements[3],
                     "vendor_part": elements[5] if len(elements) >= 6 else "",
-                    "quantity_shipped": 0,
-                    "serial_numbers": []
+                    "quantity_shipped": 0
                 }
-                parsed_data["shipped_items"].append(current_item)
 
-            # SN1 - Item Detail (Quantity)
-            elif tag == "SN1" and len(elements) >= 3 and current_item:
-                current_item["quantity_shipped"] = safe_int(elements[2])
+            # SN1 - Item Detail / Quantity (Belongs to Item Level)
+            elif tag == "SN1" and len(elements) >= 3 and current_hl_id:
+                if "item" in nodes[current_hl_id]["details"]:
+                    nodes[current_hl_id]["details"]["item"]["quantity_shipped"] = safe_int(elements[2])
 
         return parsed_data

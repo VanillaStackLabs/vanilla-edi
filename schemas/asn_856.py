@@ -1,16 +1,28 @@
 from pydantic import Field
-from typing import List, Optional
+from typing import List, Optional, ClassVar
 from schemas.invoice_810 import AddressSchema
 from schemas.base import BaseEDISchema
 
 class ShippedItemSchema(BaseEDISchema):
+    line_number: Optional[str] = Field(None, description="LIN01 Line Item Number")
     sku: str = Field(..., description="Vendor SKU or Product ID")
+    vendor_part: Optional[str] = Field(None, description="Vendor Part Number")
     quantity: int = Field(1, description="Quantity shipped")
     unit_of_measure: str = Field("EA", description="Unit of measure code")
 
+class PackSchema(BaseEDISchema):
+    cartons: Optional[List[dict]] = Field(None, description="List of SSCC-18 barcodes (MAN segments)")
+    items: List[ShippedItemSchema] = Field(default_factory=list, description="Items inside this pack/carton")
+
+class TareSchema(BaseEDISchema):
+    pallets: Optional[List[dict]] = Field(None, description="Pallet tracking/barcodes")
+    packs: List[PackSchema] = Field(default_factory=list, description="Packs/Cartons loaded on this pallet")
+
 class OrderSchema(BaseEDISchema):
-    po_number: str = Field(..., description="Purchase order reference number")
-    shipped_items: List[ShippedItemSchema] = Field(..., description="List of items included in this order")
+    po_number: str = Field(..., description="Purchase order reference number (PRF01)")
+    tares: Optional[List[TareSchema]] = Field(default_factory=list, description="Pallets in this order")
+    packs: Optional[List[PackSchema]] = Field(default_factory=list, description="Packs in this order (if no pallets are used)")
+    items: Optional[List[ShippedItemSchema]] = Field(default_factory=list, description="Loose items (if no packaging is specified)")
 
 class Generate856Request(BaseEDISchema):
     transaction_code: ClassVar[str] = "856"
