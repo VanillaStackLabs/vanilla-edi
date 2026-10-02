@@ -36,7 +36,7 @@ class Parser850(BaseParser):
             elif tag == "DTM" and len(elements) >= 3 and elements[1] == "002":
                 parsed_data["requested_delivery_date"] = elements[2]
 
-            # PER - Administrative Contact Details (Only capture header contact)
+            # PER - Administrative Contact Details
             elif tag == "PER" and len(elements) >= 3 and not parsed_data["buyer_contact"]:
                 parsed_data["buyer_contact"]["name"] = elements[2]
                 if len(elements) >= 5 and elements[3] == "TE":
@@ -46,23 +46,26 @@ class Parser850(BaseParser):
             elif tag == "TAX" and len(elements) >= 2:
                 parsed_data["tax_exempt_id"] = elements[1]
 
-            # N1 - Name (Ship To or Bill To/Buyer)
+            # N1 - Name
             elif tag == "N1" and len(elements) >= 3:
-                entity_type = elements[1]
-                entity_name = elements[2]
+                entity_type, entity_name = elements[1], elements[2]
                 if entity_type == "ST":
-                    parsed_data["ship_to"]["name"] = entity_name
                     current_entity = parsed_data["ship_to"]
                 elif entity_type in ["BY", "BT"]:
-                    parsed_data["bill_to"]["name"] = entity_name
                     current_entity = parsed_data["bill_to"]
                 else:
-                    # CRITICAL: Disown unhandled entities (like VN) so N3/N4 don't leak
                     current_entity = None
+
+                if current_entity is not None:
+                    current_entity["name"] = entity_name
+
+            # N2 - Additional Name / Division
+            elif tag == "N2" and len(elements) >= 2 and current_entity is not None:
+                current_entity["division"] = elements[1]
 
             # N3 - Street Address
             elif tag == "N3" and len(elements) >= 2 and current_entity is not None:
-                current_entity["address"] = elements[1]  # Matches Pydantic AddressSchema 'address'
+                current_entity["address"] = elements[1]
 
             # N4 - Geographic Location
             elif tag == "N4" and len(elements) >= 4 and current_entity is not None:

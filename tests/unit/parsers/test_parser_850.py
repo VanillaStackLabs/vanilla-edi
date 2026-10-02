@@ -33,15 +33,37 @@ SAMPLE_TAX_EXEMPT_850 = (
     "SE*15*0001~"
 )
 
-SAMPLE_PER_WITHOUT_PHONE_850 = (
+SAMPLE_UNHANDLED_N1_850 = (
+    "ST*850*0001~BEG*00*SA*PO-999**20261001~\n"
+    "N1*ZZ*IGNORED SUPPLIER~\n"
+    "N2*IGNORED DIVISION~\n"
+    "N3*123 IGNORED ST~\n"
+    "N4*IGNORED*NY*10001~\n"
+    "PO1*1*10*EA*5.00**VP*SKU123~\n"
+    "SE*7*0001~"
+)
+
+SAMPLE_PER_WITH_PHONE_850 = (
     "ISA*00*          *00*          *ZZ*WALMART        *ZZ*MYCOMPANY      *260928*1000*U*00401*000000001*0*P*>~\n"
     "GS*PO*WALMART*MYCOMPANY*20260928*1000*1*X*004010~\n"
     "ST*850*0001~\n"
     "BEG*00*SA*PO-998231**20260928~\n"
-    "PER*BD*JANE DOE~\n"  # PER segment without TE qualifier/phone
+    "PER*BD*JANE DOE*TE*8005550199~\n" 
     "PO1*001*10*EA*5.00**VP*ITEM-1~\n"
     "CTT*1~\n"
     "SE*7*0001~\n"
+    "GE*1*1~\n"
+    "IEA*1*000000001~"
+)
+
+SAMPLE_DTM_850 = (
+    "ISA*00*          *00*          *ZZ*WALMART        *ZZ*MYCOMPANY      *260928*1000*U*00401*000000001*0*P*>~\n"
+    "GS*PO*WALMART*MYCOMPANY*20260928*1000*1*X*004010~\n"
+    "ST*850*0001~\n"
+    "BEG*00*SA*PO-998231**20260928~\n"
+    "DTM*002*20261015~\n"
+    "PO1*001*10*EA*5.00**VP*ITEM-1~\n"
+    "SE*6*0001~\n"
     "GE*1*1~\n"
     "IEA*1*000000001~"
 )
@@ -60,6 +82,7 @@ def test_parse_850_purchase_order(client):
     assert data["line_items"][0]["sku"] == "WIDGET-BLUE"
     assert data["line_items"][0]["price"] == 12.50
 
+
 def test_parse_tax_exempt_850(client):
     response = client.post(
         "/api/v1/parse",
@@ -73,8 +96,9 @@ def test_parse_tax_exempt_850(client):
     assert data["tax_exempt_id"] == "53247765"
     assert data["buyer_contact"]["name"] == "ED SMITH"
     assert data["buyer_contact"]["phone"] == "8001234567"
-    assert data["ship_to"]["division"] == "AIRCRAFT DIVISION"
+    assert data["bill_to"]["division"] == "AIRCRAFT DIVISION"
     assert data["line_items"][0]["price"] == 36.0
+
 
 def test_parse_aerospace_snippet_850(client):
     response = client.post(
@@ -85,18 +109,40 @@ def test_parse_aerospace_snippet_850(client):
     data = response.json()
     assert data["transaction_type"] == "850"
     assert data["po_number"] == "508517"
-    assert data["ship_to"]["name"] == "ABC Aerospace Corporation"
-    assert data["ship_to"]["address1"] == "1000 BOARDWALK DRIVE"
+    assert data["bill_to"]["name"] == "ABC Aerospace Corporation"
+    assert data["bill_to"]["address"] == "1000 BOARDWALK DRIVE"
     assert data["line_items"][0]["sku"] == "R5656-2"
     assert data["line_items"][0]["quantity"] == 48
     assert data["line_items"][0]["price"] == 3.0
+    assert data["total_amount"] == 144.0  # Tests AMT tag coverage
 
-def test_parse_850_per_without_phone(client):
+
+def test_parse_850_unhandled_n1_isolation(client):
     response = client.post(
         "/api/v1/parse",
-        files={"file": ("no_phone.edi", SAMPLE_PER_WITHOUT_PHONE_850, "text/plain")}
+        files={"file": ("unhandled_n1.edi", SAMPLE_UNHANDLED_N1_850, "text/plain")}
+    )
+    assert response.status_code == 200
+    data = response.json()
+    # Guarantees N1*ZZ doesn't pollute ship_to or bill_to
+    assert data["ship_to"] == {}
+    assert data["bill_to"] == {}
+
+def test_parse_850_per_with_phone(client):
+    response = client.post(
+        "/api/v1/parse",
+        files={"file": ("phone.edi", SAMPLE_PER_WITH_PHONE_850, "text/plain")}
     )
     assert response.status_code == 200
     data = response.json()
     assert data["buyer_contact"]["name"] == "JANE DOE"
-    assert "phone" not in data["buyer_contact"]
+    assert data["buyer_contact"]["phone"] == "8005550199"
+
+def test_parse_850_requested_delivery_date(client):
+    response = client.post(
+        "/api/v1/parse",
+        files={"file": ("dtm.edi", SAMPLE_DTM_850, "text/plain")}
+    )
+    assert response.status_code == 200
+    data = response.json()
+    assert data["requested_delivery_date"] == "20261015"
