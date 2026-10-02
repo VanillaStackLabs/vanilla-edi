@@ -50,6 +50,19 @@ SAMPLE_UNKNOWN_N1_810 = ENV_HEAD + (
     "SE*6*0001~\n"
 ) + ENV_TAIL
 
+SAMPLE_COMPLETE_810 = ENV_HEAD + (
+    "ST*810*0001~\n"
+    "BIG*20261001*INV-100%*20261001*PO-777~\n"
+    "ITD~\n"  # Triggers empty ITD bounds fallback
+    "N1*BT*BILLING DEPT CORP~\n"  # Hits bill_to block
+    "N3*100 MAIN ST~\n"
+    "N4*BUFFALO*NY*14202~\n"
+    "IT1*1*10*EA*5.00**VP*SKU123~\n"
+    "PID*F****WIDGET DESCRIPTION HERE~\n"  # Hits PID block
+    "TDS*5000~\n"
+    "SE*9*0001~\n"
+) + ENV_TAIL
+
 
 def test_parse_810_invoice(client):
     response = client.post(
@@ -108,3 +121,14 @@ def test_parse_810_unknown_n1_entity(client):
     assert data["invoice_number"] == "INV-UNKNOWN"
     assert data.get("remit_to") == {}
     assert data.get("ship_to") == {}
+
+def test_parse_810_bill_to_and_pid_coverage(client):
+    response = client.post(
+        "/api/v1/parse",
+        files={"file": ("full_coverage.edi", SAMPLE_COMPLETE_810, "text/plain")},
+    )
+    assert response.status_code == 200
+    data = response.json()
+    assert data["bill_to"]["name"] == "BILLING DEPT CORP"
+    assert data["bill_to"]["address"] == "100 MAIN ST"
+    assert data["line_items"][0]["description"] == "WIDGET DESCRIPTION HERE"
